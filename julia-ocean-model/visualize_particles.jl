@@ -39,7 +39,7 @@ function visualize_results(output_prefix)
 
     speed = @lift (Array(ui($iter)).^2 .+ Array(vi($iter)).^2).^(0.5) .+ bat
 
-    fig = Figure(resolution = (1400, 900))
+    fig = Figure(resolution = (1000, 500))
 
     λ = range(-179.75, 179.75, length = 1440)
     φ = range(-74.75, 74.75, length = 600)
@@ -51,12 +51,21 @@ function visualize_results(output_prefix)
         scatter!(ax, Px_vec[j], Py_vec[j], color = :white, markersize = 4)
     end    
     
-    record(fig, output_prefix * ".mp4", 1:length(iterations), framerate=8) do i
-        @info "Plotting iteration $i of $(length(iterations))..."
+    record(fig, output_prefix * ".mp4", 1:length(iterations), framerate=16) do i
+        if mod(i, 50) == 0 
+            @info "Plotting iteration $i of $(length(iterations))..."
+        end
         iter[] = i
     end
 
-    display(fig)
-
     close(surface_file)
+    
+    @info "filename = $(output_prefix).mp4"
+end
+
+using Base64: base64encode
+
+function display_mp4(filename)
+    display("text/html", string("""<video autoplay controls><source src="data:video/x-m4v;base64,""",
+    base64encode(open(read,filename)),"""" type="video/mp4"></video>"""))
 end

@@ -27,6 +27,7 @@ function visualize_cartesian_grid(grid)
     ax1 = Axis(fig[1, 1])
     heatmap!(ax1, λ[:, 1], ϕ[1, :], bat, colormap = :hot)
     wireframe!(ax1, λ, ϕ, z, color = :black, linewidth = 0.05)
+    hidedecorations!(ax1)
 
     return fig
 end

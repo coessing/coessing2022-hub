@@ -19,6 +19,9 @@ start_time = [time_ns()]
     return nothing
 end
 
+const vel_idx  = 362
+const tot_time = 362
+
 @inline current_time_index(time, tot_time)   = mod(unsafe_trunc(Int32, time / 10days),     tot_time) + 1
 @inline next_time_index(time, tot_time)      = mod(unsafe_trunc(Int32, time / 10days) + 1, tot_time) + 1
 @inline cyclic_interpolate(u₁, u₂, time)     = u₁ + mod(time / 10days, 1) * (u₂ - u₁)
@@ -29,7 +32,7 @@ end
     v_mod[i, j, k] = cyclic_interpolate(v₁[i, j, k], v₂[i, j, k], time)
 end
 
-@inline function velocity_function!(simulation)
+@inline function change_velocity_function!(simulation)
     time = simulation.model.clock.time
 
     grid = simulation.model.grid
@@ -49,4 +52,16 @@ end
     wait(Oceananigans.Architectures.device(architecture(grid)), event)
 
     return nothing
+end
+
+@inline function calculate_velocities(u, v, U, V, δ)
+    um = []
+    vm = []
+
+    for i in 1:length(u)
+        push!(um, u[i] .* δ .+ Um .* (1 - δ))
+        push!(vm, v[i] .* δ .+ Vm .* (1 - δ))
+    end
+    
+    return u, v
 end
