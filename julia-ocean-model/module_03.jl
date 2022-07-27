@@ -2,8 +2,7 @@ using Oceananigans
 using Oceananigans.Grids: architecture
 using KernelAbstractions: @kernel, @index
 using Oceananigans.Utils
-global_path = "/Users/simonesilvestri/Dropbox/lab-nigeria/"
-include(global_path * "module_02.jl")
+include("module_02.jl")
 
 start_time = [time_ns()]
 

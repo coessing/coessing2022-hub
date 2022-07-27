@@ -1,5 +1,4 @@
-global_path = "/Users/simonesilvestri/Dropbox/lab-nigeria/"
-include(global_path * "module_03.jl")
+include("module_03.jl")
 
 using Statistics
 using JLD2
@@ -8,6 +7,21 @@ using CairoMakie
 using Oceananigans.Units   
 using Oceananigans.Architectures: arch_array
 using Oceananigans.Operators
+
+## Load in variable velocity fields (the have to be locally downloaded from 
+## https://drive.google.com/file/d/196laviLFLe1YDQetj4oZRVO9jAMCZwjv/view?usp=sharing
+## 2.3 GB of data!!!!!
+
+file_turb_vel = jldopen("prescribed_surface_velocities.jl")
+
+const u = file_turb_vel["u"]
+const v = file_turb_vel["v"]
+
+const vel_idx  = length(u)
+const tot_time = length(u) 
+
+un = deepcopy(u)
+vn = deepcopy(v)
 
 #####
 ##### Include Particles
