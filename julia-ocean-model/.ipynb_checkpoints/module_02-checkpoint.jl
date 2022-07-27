@@ -2,15 +2,18 @@ using Oceananigans.Units
 
 include("module_01.jl")
 
-# Figure out where to store this data?
-onlinepath = "https://github.com/simone-silvestri/coessing-data"
+onlinepath = "https://github.com/simone-silvestri/coessing-data/raw/main/"
 
 dh = DataDep("quarter_degree_velocity_timeseries",
-     "global latitude longitude simulation: 10 year velocity timeseries",
-     onlinepath * "bathymetry-1440x600.jld2"
+     "Mean velocity fields for the global latitude longitude simulation",
+     onlinepath * "prescribed_mean_fields.jld2"
 )
 
-file_velocities = jldopen("prescribed_surface_fields.jld2")
+DataDeps.register(dh)
+
+datadep"quarter_degree_velocity_timeseries"
+
+file_velocities = jldopen(@datadep_str "quarter_degree_velocity_timeseries/prescribed_mean_fields.jld2")
 
 U = XFaceField(grid)
 V = YFaceField(grid)
@@ -18,14 +21,5 @@ V = YFaceField(grid)
 const Um = file_velocities["um"]
 const Vm = file_velocities["vm"]
 
-const u = file_velocities["u"]
-const v = file_velocities["v"]
-
-const vel_idx  = length(u)
-const tot_time = length(u) 
-
 set!(U, Um)
 set!(V, Vm)
-
-un = deepcopy(u)
-vn = deepcopy(v)
