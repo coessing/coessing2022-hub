@@ -46,9 +46,9 @@ function visualize_results(output_prefix)
 
     ax = Axis(fig[1, 1], title="Tracer concentration (m)")
     hm = heatmap!(ax, λ, φ, speed, colorrange=(0.0, 0.5), colormap = :viridis, nan_color = :black, interpolate = true)
-    scatter!(ax, Px, Py, color = :yellow, markersize = 6)
+    scatter!(ax, Px, Py, color = :yellow, markersize = 4)
     for j in 1:10
-        scatter!(ax, Px_vec[j], Py_vec[j], color = :white, markersize = 4)
+        scatter!(ax, Px_vec[j], Py_vec[j], color = :white, markersize = 2)
     end    
     
     record(fig, output_prefix * ".mp4", 1:length(iterations), framerate=16) do i
