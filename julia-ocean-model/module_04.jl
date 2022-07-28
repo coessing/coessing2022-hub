@@ -27,6 +27,8 @@ vn = deepcopy(v)
 ##### Include Particles
 #####
 
+include("visualize_particles.jl")
+
 using Oceananigans.Models.HydrostaticFreeSurfaceModels: OnlyParticleTrackingModel
 
 function run_particle_simulation!(λ₀, φ₀, n_particles, degree_spread_λ, degree_spread_φ, δ_turb, Nyears)
@@ -102,62 +104,19 @@ function run_particle_simulation!(λ₀, φ₀, n_particles, degree_spread_λ, d
         Simulation took $(prettytime(simulation.run_wall_time))
         Time step: $(prettytime(Δt))
     """
-    return model
+    return nothing
 end
 
-####
-#### Plotting results
-####
+λ₀ = 55.2
+φ₀ = 8.3
 
-function visualize_results(output_prefix)
-    bat = deepcopy(arch_array(CPU(), bathymetry_mask))
+degree_spread_λ = 5.0
+degree_spread_φ = 5.0
 
-    surface_file = jldopen(output_prefix * ".jld2")
+n_particles = 50
 
-    bat = Float64.(bat)
-    bat[bat .== 1] .= NaN
+δ_turb = 0.8
 
-    iterations = parse.(Int, keys(surface_file["timeseries/t"]))
+run_particle_simulation!(λ₀, φ₀, n_particles, degree_spread_λ, degree_spread_φ, δ_turb, 10)
 
-    iter = Observable(0)
-
-    xi(iter) = surface_file["timeseries/particles/" * string(iter)].x
-    yi(iter) = surface_file["timeseries/particles/" * string(iter)].y
-    ti(iter) = string(surface_file["timeseries/t/" * string(iter)] / day)
-
-    ui(iter) = surface_file["timeseries/u/" * string(iter)][:, :,       1]
-    vi(iter) = surface_file["timeseries/v/" * string(iter)][:, 1:end-1, 1]
-    
-    Px = @lift Array(xi($iter))
-    Py = @lift Array(yi($iter))
-
-    x₀ = []
-    y₀ = []
-    for j in eachindex(iterations)
-        push!(x₀, xi(iterations[j]))
-        push!(y₀, yi(iterations[j]))
-    end
-
-    speed = @lift (Array(ui($iter)).^2 .+ Array(vi($iter)).^2).^(0.5) .+ bat
-
-    fig = Figure(resolution = (1400, 900))
-
-    λ = range(-179.75, 179.75, length = 1440)
-    φ = range(-74.75, 74.75, length = 600)
-
-    ax = Axis(fig[1, 1], title="Tracer concentration (m)")
-    hm = CairoMakie.heatmap!(ax, λ, φ, speed, colorrange=(0.0, 0.5), colormap = :viridis, nan_color = :black, interpolate = true)
-    CairoMakie.scatter!(ax, Px, Py, color = :red)
-
-    CairoMakie.record(fig, output_prefix * ".mp4", 1:length(iterations), framerate=8) do i
-        @info "Plotting iteration $i of $(length(iterations))..."
-        if i > 1
-            CairoMakie.scatter!(ax, x₀[i-1], y₀[i-1], color = :white, markersize = 4)
-        end
-        iter[] = iterations[i]
-    end
-
-    display(fig)
-
-    close(surface_file)
-end
+visualize_results("output_particles")
