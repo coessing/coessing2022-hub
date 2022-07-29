@@ -3,7 +3,7 @@ function visualize_results(output_prefix)
     
     surface_file = jldopen(output_prefix * ".jld2")
 
-    bat = surface_file["grid/immersed_boundary/mask"][5:end-4, 5:end-4, 5]
+    bat = surface_file["grid/immersed_boundary/mask"][4:end-3, 4:end-3, 4]
 
     bat = Float64.(bat)
     bat[bat .== 1] .= NaN
@@ -44,7 +44,7 @@ function visualize_results(output_prefix)
     λ = range(-179.75, 179.75, length = 1440)
     φ = range(-74.75, 74.75, length = 600)
 
-    ax = Axis(fig[1, 1], title="Tracer concentration (m)")
+    ax = Axis(fig[1, 1], title="Particle paths - Contour speed (√u² + v²) ms⁻¹")
     hm = heatmap!(ax, λ, φ, speed, colorrange=(0.0, 0.5), colormap = :viridis, nan_color = :black, interpolate = true)
     scatter!(ax, Px, Py, color = :yellow, markersize = 4)
     for j in 1:10
