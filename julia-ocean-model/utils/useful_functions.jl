@@ -9,6 +9,10 @@ using Oceananigans.Utils
 using Printf
 using CairoMakie
 
+####
+#### Visualization of the grid and discrete continent map
+####
+
 function visualize_cartesian_grid(grid)
     Nx, Ny, _ = size(grid)
    
@@ -37,20 +41,34 @@ function visualize_cartesian_grid(grid)
     return fig
 end
 
+####
+#### Setting U's data to the array Um
+#### Um is assumed to have the shape (1440, 600, 1) or (1440, 601, 1)
+####
+
 function set_velocity_from_array!(U, Um)
     
     grid = U.grid
-    if any(size(grid) != size(Um))
+    
+    if any(size(U) != size(Um))
         old_grid = LatitudeLongitudeGrid(size = (1440, 600, 1),
                                          longitude = (-180, 180),
                                          latitude = (-75, 75),
                                          z = (0, 1))
-        Nx, Ny, _ = size(U)
-        Un = zeros(Nx, Ny)
-        
+        Nx, Ny, _ = size(U) 
         old_field = Field{location(U)...}(old_grid)
-        set!(old_field, Um)
 
+        tmp = zeros(size(old_field))
+        
+        # Allow Vm to be passed to U and Um to be passed to V
+        if size(Um)[2] == size(old_field)[2] + 1
+            tmp .= Um[:, 1:end-1, :]
+        elseif size(Um)[2] == size(old_field)[2] - 1
+            tmp[:, 1:end-1, :] .= Um
+        else
+            tmp .= Um
+        end
+        set!(old_field, tmp)
         Un = zeros(Nx, Ny, 1)
 
         loc = location(U)
@@ -62,6 +80,11 @@ function set_velocity_from_array!(U, Um)
         set!(U, Um)
     end
 end
+
+####
+#### Interpolating the bathymetry map over a grid.
+#### The bathymetry is assumed to be a 2D array of size (1440, 600)
+####
 
 function immersed_boundary_grid(grid, bathymetry)
     
@@ -88,6 +111,10 @@ function immersed_boundary_grid(grid, bathymetry)
 end
 
 
+####
+#### Progress function to keep track of the simulation 
+####
+
 start_time = [time_ns()]
 
 @inline function progress(sim)
@@ -102,6 +129,11 @@ start_time = [time_ns()]
 
     return nothing
 end
+
+
+#####
+##### Shenanigans for time-dependent velocity simulation
+#####
 
 const vel_idx  = 362
 const tot_time = 362
