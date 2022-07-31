@@ -10,6 +10,39 @@ using Printf
 using CairoMakie
 
 ####
+#### Interpolating the bathymetry map over a grid.
+#### The bathymetry is assumed to be a 2D array of size (1440, 600)
+####
+
+function immersed_boundary_grid(grid, bathymetry)
+    
+    if size(bathymetry) != size(grid)
+        bathymetry_grid = LatitudeLongitudeGrid(size = (1440, 600, 1),
+                                                longitude = (-180, 180),
+                                                latitude = (-75, 75),
+                                                halo = (4, 4, 4),
+                                                z = (0, 1))
+
+        Nx, Ny, _ = size(grid)
+
+        bathymetry_mask = zeros(Nx, Ny)
+
+        old_field = CenterField(bathymetry_grid)
+        set!(old_field, reshape(bathymetry, 1440, 600, 1))
+
+        for i in 1:Nx, j in 1:Ny
+            bathymetry_mask[i, j] = interpolate(old_field, grid.λᶜᵃᵃ[i], grid.φᵃᶜᵃ[j], grid.zᵃᵃᶜ[1])
+        end
+    else
+        bathymetry_mask = deepcopy(bathymetry)
+    end
+    
+    bathymetry_mask = Float64.(bathymetry_mask .>= 0)
+    
+    return ImmersedBoundaryGrid(grid, GridFittedBoundary(bathymetry_mask))
+end
+
+####
 #### Visualization of the grid and discrete continent map
 ####
 
@@ -36,8 +69,7 @@ function visualize_cartesian_grid(grid)
     ax1 = Axis(fig[1, 1])
     heatmap!(ax1, λ[:, 1], ϕ[1, :], bat, colormap = :hot)
     wireframe!(ax1, λ, ϕ, z, color = :black, linewidth = 0.05)
-    hidedecorations!(ax1)
-
+    hidedecorations!(ax1, ticklabels=false)
     return fig
 end
 
@@ -80,36 +112,6 @@ function set_velocity_from_array!(U, Um)
         set!(U, Um)
     end
 end
-
-####
-#### Interpolating the bathymetry map over a grid.
-#### The bathymetry is assumed to be a 2D array of size (1440, 600)
-####
-
-function immersed_boundary_grid(grid, bathymetry)
-    
-    bat_grid = LatitudeLongitudeGrid(size = (1440, 600, 1),
-                                     longitude = (-180, 180),
-                                     latitude = (-75, 75),
-                                     halo = (4, 4, 4),
-                                     z = (0, 1))
-
-    Nx, Ny, _ = size(grid)
-
-    bat_new = zeros(Nx, Ny)
-
-    old_field = Field{Center, Center, Center}(bat_grid)
-    set!(old_field, reshape(bathymetry, 1440, 600, 1))
-    
-    for i in 1:Nx, j in 1:Ny
-        bat_new[i, j] = interpolate(old_field, grid.λᶜᵃᵃ[i], grid.φᵃᶜᵃ[j], bat_grid.zᵃᵃᶜ[1])
-    end
-
-    bat_new = Float64.(bat_new .>= 0)
-
-    return ImmersedBoundaryGrid(grid, GridFittedBoundary(bat_new))
-end
-
 
 ####
 #### Progress function to keep track of the simulation 
@@ -155,11 +157,11 @@ end
     n₁ = current_time_index(time, tot_time)
     n₂ = next_time_index(time, tot_time)
 
-    u₁ = un[n₁]
-    u₂ = un[n₂]
+    u₁ = ut[n₁]
+    u₂ = ut[n₂]
     
-    v₁ = vn[n₁]
-    v₂ = vn[n₂]
+    v₁ = vt[n₁]
+    v₂ = vt[n₂]
     
     u_mod = simulation.model.velocities.u
     v_mod = simulation.model.velocities.v
@@ -179,5 +181,5 @@ end
         push!(vm, v[i] .* δ .+ Vm .* (1 - δ))
     end
     
-    return u, v
+    return um, vm
 end
