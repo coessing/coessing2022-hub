@@ -1,23 +1,20 @@
 
-function visualize_results(output_prefix)
+function visualize_results(grid)
     
-    surface_file = jldopen(output_prefix * ".jld2")
-
-    bat = surface_file["grid/immersed_boundary/mask"][4:end-3, 4:end-3, 4]
+    bat = grid.immersed_boundary.mask[4:end-3, 4:end-3, 4]
 
     bat = Float64.(bat)
     bat[bat .== 1] .= NaN
-
-    iterations = parse.(Int, keys(surface_file["timeseries/t"]))
-
+    
+    iterations = length(u_output)
+    
     iter = Observable(1)
 
-    xi(iter) = surface_file["timeseries/particles/" * string(iterations[iter])].x
-    yi(iter) = surface_file["timeseries/particles/" * string(iterations[iter])].y
-    ti(iter) = string(surface_file["timeseries/t/" * string(iterations[iter])] / day)
+    xi(iter) = particles_output[iter].x
+    yi(iter) = particles_output[iter].y
 
-    ui(iter) = surface_file["timeseries/u/" * string(iterations[iter])][:, :,       1]
-    vi(iter) = surface_file["timeseries/v/" * string(iterations[iter])][:, 1:end-1, 1]
+    ui(iter) = u_output[iter][:, :,       1]
+    vi(iter) = v_output[iter][:, 1:end-1, 1]
     
     Px = @lift Array(xi($iter))
     Py = @lift Array(yi($iter))

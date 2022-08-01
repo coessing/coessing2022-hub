@@ -183,3 +183,9 @@ end
     
     return um, vm
 end
+
+@inline function store_output!(simulation)
+    push!(u_output, simulation.model.velocities.u)
+    push!(v_output, simulation.model.velocities.v)
+    push!(particles_output, simulation.model.particles)
+end
