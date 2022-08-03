@@ -1,6 +1,6 @@
 using Oceananigans
 using Oceananigans.Grids: nodes, xnode, ynode
-using Oceananigans.Fields: interpolate, location
+using Oceananigans.Fields: interpolate, location, VelocityFields
 using Oceananigans.Units
 using Oceananigans
 using Oceananigans.Grids: architecture
@@ -185,7 +185,11 @@ end
 end
 
 @inline function store_output!(simulation)
-    push!(u_output, simulation.model.velocities.u)
-    push!(v_output, simulation.model.velocities.v)
-    push!(particles_output, simulation.model.particles)
+    push!(u_output, deepcopy(simulation.model.velocities.u))
+    push!(v_output, deepcopy(simulation.model.velocities.v))
+    push!(particles_output, deepcopy(simulation.model.particles))
+end
+
+@inline function store_particles_output!(simulation)
+    push!(particles_output, deepcopy(simulation.model.particles))
 end
