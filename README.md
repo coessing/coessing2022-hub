@@ -9,7 +9,3 @@ Add your content by:
 - Naming your file with the title of your lab.  
 - Forking and cloning this repo and adding your files via a PR from your fork.
 - Click `Add file > Upload files` and manually upload your code, notebooks, etc.
-
-testing- shanice aug 3, 2023
-
-kadjnceovn
